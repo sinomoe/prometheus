@@ -227,7 +227,8 @@ func (r *AlertingRule) sample(alert *Alert, ts time.Time) promql.Sample {
 
 	s := promql.Sample{
 		Metric: lb.Labels(nil),
-		Point:  promql.Point{T: timestamp.FromTime(ts), V: 1},
+		T:      timestamp.FromTime(ts),
+		F:      1,
 	}
 	return s
 }
@@ -245,7 +246,8 @@ func (r *AlertingRule) forStateSample(alert *Alert, ts time.Time, v float64) pro
 
 	s := promql.Sample{
 		Metric: lb.Labels(nil),
-		Point:  promql.Point{T: timestamp.FromTime(ts), V: v},
+		T:      timestamp.FromTime(ts),
+		F:      v,
 	}
 	return s
 }
@@ -332,7 +334,7 @@ func (r *AlertingRule) Eval(ctx context.Context, ts time.Time, query QueryFunc, 
 			l[lbl.Name] = lbl.Value
 		}
 
-		tmplData := template.AlertTemplateData(l, r.externalLabels, r.externalURL, smpl.V)
+		tmplData := template.AlertTemplateData(l, r.externalLabels, r.externalURL, smpl.F)
 		// Inject some convenience variables that are easier to remember for users
 		// who are not used to Go's templating system.
 		defs := []string{
@@ -386,7 +388,7 @@ func (r *AlertingRule) Eval(ctx context.Context, ts time.Time, query QueryFunc, 
 			Annotations: annotations,
 			ActiveAt:    ts,
 			State:       StatePending,
-			Value:       smpl.V,
+			Value:       smpl.F,
 		}
 	}
 

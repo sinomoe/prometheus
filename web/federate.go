@@ -133,7 +133,8 @@ func (h *Handler) federation(w http.ResponseWriter, req *http.Request) {
 
 		vec = append(vec, promql.Sample{
 			Metric: s.Labels(),
-			Point:  promql.Point{T: t, V: v},
+			T:      t,
+			F:      v,
 		})
 	}
 	if ws := set.Warnings(); len(ws) > 0 {
@@ -222,7 +223,7 @@ func (h *Handler) federation(w http.ResponseWriter, req *http.Request) {
 		}
 
 		protMetric.TimestampMs = proto.Int64(s.T)
-		protMetric.Untyped.Value = proto.Float64(s.V)
+		protMetric.Untyped.Value = proto.Float64(s.F)
 		// TODO(beorn7): Handle histograms.
 
 		protMetricFam.Metric = append(protMetricFam.Metric, protMetric)

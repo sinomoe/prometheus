@@ -78,7 +78,7 @@ func TestAlertingRule(t *testing.T) {
 				"job", "app-server",
 				"severity", "critical",
 			),
-			Point: promql.Point{V: 1},
+			F: 1,
 		},
 		promql.Sample{
 			Metric: labels.FromStrings(
@@ -90,7 +90,7 @@ func TestAlertingRule(t *testing.T) {
 				"job", "app-server",
 				"severity", "critical",
 			),
-			Point: promql.Point{V: 1},
+			F: 1,
 		},
 		promql.Sample{
 			Metric: labels.FromStrings(
@@ -102,7 +102,7 @@ func TestAlertingRule(t *testing.T) {
 				"job", "app-server",
 				"severity", "critical",
 			),
-			Point: promql.Point{V: 1},
+			F: 1,
 		},
 		promql.Sample{
 			Metric: labels.FromStrings(
@@ -114,7 +114,7 @@ func TestAlertingRule(t *testing.T) {
 				"job", "app-server",
 				"severity", "critical",
 			),
-			Point: promql.Point{V: 1},
+			F: 1,
 		},
 	}
 
@@ -220,7 +220,7 @@ func TestForStateAddSamples(t *testing.T) {
 				"job", "app-server",
 				"severity", "critical",
 			),
-			Point: promql.Point{V: 1},
+			F: 1,
 		},
 		promql.Sample{
 			Metric: labels.FromStrings(
@@ -231,7 +231,7 @@ func TestForStateAddSamples(t *testing.T) {
 				"job", "app-server",
 				"severity", "critical",
 			),
-			Point: promql.Point{V: 1},
+			F: 1,
 		},
 		promql.Sample{
 			Metric: labels.FromStrings(
@@ -242,7 +242,7 @@ func TestForStateAddSamples(t *testing.T) {
 				"job", "app-server",
 				"severity", "critical",
 			),
-			Point: promql.Point{V: 1},
+			F: 1,
 		},
 		promql.Sample{
 			Metric: labels.FromStrings(
@@ -253,7 +253,7 @@ func TestForStateAddSamples(t *testing.T) {
 				"job", "app-server",
 				"severity", "critical",
 			),
-			Point: promql.Point{V: 1},
+			F: 1,
 		},
 	}
 
@@ -324,8 +324,8 @@ func TestForStateAddSamples(t *testing.T) {
 		for i := range test.result {
 			test.result[i].T = timestamp.FromTime(evalTime)
 			// Updating the expected 'for' state.
-			if test.result[i].V >= 0 {
-				test.result[i].V = forState
+			if test.result[i].F >= 0 {
+				test.result[i].F = forState
 			}
 		}
 		require.Equal(t, len(test.result), len(filteredRes), "%d. Number of samples in expected and actual output don't match (%d vs. %d)", i, len(test.result), len(res))
@@ -579,28 +579,28 @@ func TestStaleness(t *testing.T) {
 	metricSample, ok := samples[metric]
 
 	require.True(t, ok, "Series %s not returned.", metric)
-	require.True(t, value.IsStaleNaN(metricSample[2].V), "Appended second sample not as expected. Wanted: stale NaN Got: %x", math.Float64bits(metricSample[2].V))
-	metricSample[2].V = 42 // require.Equal cannot handle NaN.
+	require.True(t, value.IsStaleNaN(metricSample[2].F), "Appended second sample not as expected. Wanted: stale NaN Got: %x", math.Float64bits(metricSample[2].F))
+	metricSample[2].F = 42 // require.Equal cannot handle NaN.
 
-	want := map[string][]promql.Point{
-		metric: {{T: 0, V: 2}, {T: 1000, V: 3}, {T: 2000, V: 42}},
+	want := map[string][]promql.FPoint{
+		metric: {{T: 0, F: 2}, {T: 1000, F: 3}, {T: 2000, F: 42}},
 	}
 
 	require.Equal(t, want, samples)
 }
 
 // Convert a SeriesSet into a form usable with require.Equal.
-func readSeriesSet(ss storage.SeriesSet) (map[string][]promql.Point, error) {
-	result := map[string][]promql.Point{}
+func readSeriesSet(ss storage.SeriesSet) (map[string][]promql.FPoint, error) {
+	result := map[string][]promql.FPoint{}
 
 	for ss.Next() {
 		series := ss.At()
 
-		points := []promql.Point{}
+		points := []promql.FPoint{}
 		it := series.Iterator()
 		for it.Next() == chunkenc.ValFloat {
 			t, v := it.At()
-			points = append(points, promql.Point{T: t, V: v})
+			points = append(points, promql.FPoint{T: t, F: v})
 		}
 
 		name := series.Labels().String()
@@ -701,7 +701,7 @@ func TestDeletedRuleMarkedStale(t *testing.T) {
 	metricSample, ok := samples[metric]
 
 	require.True(t, ok, "Series %s not returned.", metric)
-	require.True(t, value.IsStaleNaN(metricSample[0].V), "Appended sample not as expected. Wanted: stale NaN Got: %x", math.Float64bits(metricSample[0].V))
+	require.True(t, value.IsStaleNaN(metricSample[0].F), "Appended sample not as expected. Wanted: stale NaN Got: %x", math.Float64bits(metricSample[0].F))
 }
 
 func TestUpdate(t *testing.T) {
@@ -1128,7 +1128,7 @@ func countStaleNaN(t *testing.T, st storage.Storage) int {
 
 	require.True(t, ok, "Series %s not returned.", metric)
 	for _, s := range metricSample {
-		if value.IsStaleNaN(s.V) {
+		if value.IsStaleNaN(s.F) {
 			c++
 		}
 	}

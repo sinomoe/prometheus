@@ -57,7 +57,8 @@ func TestRuleEval(t *testing.T) {
 			labels: labels.Labels{},
 			result: promql.Vector{promql.Sample{
 				Metric: labels.FromStrings("__name__", "nolabels"),
-				Point:  promql.Point{V: 1, T: timestamp.FromTime(now)},
+				F:      1,
+				T:      timestamp.FromTime(now),
 			}},
 		},
 		{
@@ -66,7 +67,8 @@ func TestRuleEval(t *testing.T) {
 			labels: labels.FromStrings("foo", "bar"),
 			result: promql.Vector{promql.Sample{
 				Metric: labels.FromStrings("__name__", "labels", "foo", "bar"),
-				Point:  promql.Point{V: 1, T: timestamp.FromTime(now)},
+				F:      1,
+				T:      timestamp.FromTime(now),
 			}},
 		},
 	}
