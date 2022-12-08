@@ -111,17 +111,17 @@ func (h *Handler) federation(w http.ResponseWriter, req *http.Request) {
 
 		var t int64
 		var v float64
-		var ok bool
 
 		valueType := it.Seek(maxt)
 		if valueType == chunkenc.ValFloat {
 			t, v = it.At()
 		} else {
-			// TODO(beorn7): Handle histograms.
-			t, v, _, ok = it.PeekBack(1)
-			if !ok {
+			sample, ok := it.PeekBack(1)
+			if !ok || sample.Type() != chunkenc.ValFloat {
+				// TODO(beorn7): Handle histograms.
 				continue
 			}
+			t, v = sample.T(), sample.V()
 		}
 		// The exposition formats do not support stale markers, so drop them. This
 		// is good enough for staleness handling of federated data, as the
