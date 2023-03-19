@@ -1,0 +1,132 @@
+{
+  "$schema": "https://aka.ms/codetour-schema",
+  "title": "promtheus tsdb walkthrough",
+  "steps": [
+    {
+      "file": "tsdb/example_test.go",
+      "description": "使用 Open 从目录实例化一个 tsdb 实例",
+      "line": 33
+    },
+    {
+      "file": "tsdb/db.go",
+      "description": "校验参数有效性，以及生成 rng 序列\nrngs 根据使用指数递增生成，最小为 MinBlockDuration，最大不超过 MaxBlockDuration，例如 [MinBlockDuration(2), 6, ..., 2*3^i] <= MaxBlockDuration",
+      "line": 615
+    },
+    {
+      "file": "tsdb/db.go",
+      "description": "默认配置选项:\n\n* WAL segment 大小 128 MiB\n* 最大 Block Chunk Segment 大小 512 MiB\n* 持久化数据的保留时间 15 天\n* Block 的最大/小时间周期 2 小时，默认一个 Block 两小时\n* Head Chunk 的写入 buffer 大小 4 MiB",
+      "line": 71
+    },
+    {
+      "file": "tsdb/db.go",
+      "description": "dir 为 tsdb 目录，l,r,stats 为 nil, rngs 为 [2*millisInAnHour]",
+      "line": 617
+    },
+    {
+      "file": "tsdb/db.go",
+      "description": "再次防御 rngs 大于 MaxBlockDuration，之前在生成 rngs 时已经防御过，这里又做有点冗余",
+      "line": 671
+    },
+    {
+      "file": "tsdb/db.go",
+      "description": "wal 日志文件夹",
+      "line": 683
+    },
+    {
+      "file": "tsdb/db.go",
+      "description": "todo：未来补充\n\nwbl 是最新加入的功能，其思路与 wal 类似，用于解决乱序（out-of-order）样本的问题，方案主要来自于 grafana mimir，可见文档 https://docs.google.com/document/d/1Kppm7qL9C-BJB1j6yb6-9ObG3AbdZnFUBYPNNWwDBYM/edit#\n\n相关 pr，https://github.com/prometheus/prometheus/pull/11075",
+      "line": 684
+    },
+    {
+      "file": "tsdb/db.go",
+      "description": "删除临时文件和文件夹",
+      "line": 690
+    },
+    {
+      "file": "tsdb/db.go",
+      "description": "根据时间和空间策略，决定是否删除已持久化的 block ",
+      "line": 724
+    },
+    {
+      "file": "tsdb/db.go",
+      "description": "chunk 压缩相关，todo",
+      "line": 739
+    },
+    {
+      "file": "tsdb/db.go",
+      "description": "实例化 wal，默认 segment 大小为 128MiB，segment size 必须 32 KiB 对齐",
+      "line": 754
+    },
+    {
+      "file": "tsdb/wlog/wlog.go",
+      "description": "获取到 wal 目录下的第一个和最后一个 segement 序号（0基）",
+      "line": 284
+    },
+    {
+      "file": "tsdb/wlog/wlog.go",
+      "description": "创建 segment 文件，序号为当前目录下最后一个 segment 序号+1，如果当前目录没有segment 则为 0",
+      "line": 296
+    },
+    {
+      "file": "tsdb/wlog/wlog.go",
+      "description": "将新建的 segment 作为 active segment",
+      "line": 301
+    },
+    {
+      "file": "tsdb/wlog/wlog.go",
+      "description": "新起一个 goroutine 异步处理任务",
+      "line": 305
+    },
+    {
+      "file": "tsdb/wlog/wlog.go",
+      "description": "w.actorc 中存放着实际的工作负载，一个闭包函数",
+      "line": 337,
+      "selection": {
+        "start": {
+          "line": 337,
+          "character": 15
+        },
+        "end": {
+          "line": 337,
+          "character": 23
+        }
+      }
+    },
+    {
+      "file": "tsdb/db.go",
+      "description": "wbl 相关，用于乱序写入，todo",
+      "line": 758
+    },
+    {
+      "file": "tsdb/db.go",
+      "description": "ChunkRange 为 MinBlockDuration，ChunkDirRoot 为 tsdb data 的根目录",
+      "line": 772
+    },
+    {
+      "file": "tsdb/db.go",
+      "description": "创建 head block",
+      "line": 789
+    },
+    {
+      "file": "tsdb/head.go",
+      "description": "head block 结构体构建",
+      "line": 229
+    },
+    {
+      "file": "tsdb/head.go",
+      "description": "初始化 head 状态",
+      "line": 242
+    },
+    {
+      "file": "tsdb/head.go",
+      "description": "todo：未来补充\n\nisolation 用来实现 ACID 中的 I，维护所有的 appender 列表，确保一个在 appender commit 之前无法从别的 appender 中读取到该 appender 未提交的值\n",
+      "line": 282
+    },
+    {
+      "file": "tsdb/head.go",
+      "description": "stripeSeries 用来访问 series，可以通过 HeadSeriesRef 和 label 访问，StripeSize 是 map 的分片数量，提升数值可以提升大量 series 时的访问性能，同时消耗更多内存",
+      "line": 286
+    }
+  ],
+  "ref": "tour-v2.42.0"
+}
